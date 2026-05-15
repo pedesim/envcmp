@@ -24,7 +24,12 @@ def run_audit(config: AuditRunConfig) -> AuditReport:
 
 
 def audit_file(path: str, label: Optional[str] = None, extra_secret_patterns: Optional[list] = None) -> AuditReport:
-    """Load an env file and audit it."""
+    """Load an env file and audit it.
+
+    Raises:
+        FileNotFoundError: If the file at *path* does not exist.
+        OSError: If the file cannot be read.
+    """
     source = load_from_file(path, label=label)
     config = AuditRunConfig(source=source, extra_secret_patterns=extra_secret_patterns)
     return run_audit(config)
@@ -66,3 +71,12 @@ def format_audit_report(report: AuditReport, use_color: bool = False) -> str:
     summary = f"\n{len(report.errors)} error(s), {len(report.warnings)} warning(s).\n"
     lines.append(summary)
     return "\n".join(lines)
+
+
+def print_audit_report(report: AuditReport, use_color: bool = False) -> None:
+    """Print a formatted AuditReport to stdout.
+
+    Convenience wrapper around :func:`format_audit_report` that handles the
+    common case of writing results directly to the terminal.
+    """
+    print(format_audit_report(report, use_color=use_color), end="")

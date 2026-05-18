@@ -17,6 +17,7 @@ def reporter() -> Reporter:
 
 
 def _render(reporter: Reporter, base: dict, target: dict) -> str:
+    """Diff base vs target and return the rendered output as a string."""
     result = diff(base, target)
     stream = io.StringIO()
     reporter.render(result, stream)
@@ -89,3 +90,11 @@ def test_keys_sorted_alphabetically(reporter):
     output = _render(reporter, {}, {"ZEBRA": "1", "ALPHA": "2", "MIDDLE": "3"})
     positions = {key: output.index(key) for key in ("ALPHA", "MIDDLE", "ZEBRA")}
     assert positions["ALPHA"] < positions["MIDDLE"] < positions["ZEBRA"]
+
+
+def test_changed_key_secret_masked(reporter):
+    """Changed secret values should be masked in both old and new positions."""
+    output = _render(reporter, {"DB_PASSWORD": "old_secret"}, {"DB_PASSWORD": "new_secret"})
+    assert "old_secret" not in output
+    assert "new_secret" not in output
+    assert "***" in output
